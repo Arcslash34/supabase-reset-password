@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reset Password</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f9fafb;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+      }
+
+      .card {
+        background: #ffffff;
+        padding: 30px 24px;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h2 {
+        text-align: center;
+        margin-bottom: 24px;
+        font-size: 1.5rem;
+        color: #333;
+      }
+
+      input {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 16px;
+        font-size: 1rem;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        transition: border-color 0.2s ease;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: #3b82f6;
+      }
+
+      button {
+        width: 100%;
+        padding: 12px;
+        font-size: 1rem;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+      }
+
+      button:hover {
+        background-color: #2563eb;
+      }
+
+      .message {
+        text-align: center;
+        margin-top: 16px;
+        font-size: 0.95rem;
+      }
+
+      .message.error {
+        color: #dc2626;
+      }
+
+      .message.success {
+        color: #16a34a;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <h2>Reset Your Password</h2>
+      <input
+        type="password"
+        id="new-password"
+        placeholder="Enter new password"
+      />
+      <button onclick="updatePassword()">Update Password</button>
+      <p id="message" class="message"></p>
+    </div>
+
+    <script type="module">
+      import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+      const supabase = createClient(
+        "https://litprnfjvytjttlqyhlj.supabase.co",
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpdHBybmZqdnl0anR0bHF5aGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4ODgwMDUsImV4cCI6MjA2NzQ2NDAwNX0.a63MemNyPUF6fds0kD_7OCtklD4_gTUztKqOseGXnsg"
+      );
+
+      const message = document.getElementById("message");
+      const newPasswordInput = document.getElementById("new-password");
+
+      // Delay to ensure hash is fully available
+      setTimeout(async () => {
+        const urlHash = window.location.hash;
+        const accessToken = urlHash.match(/access_token=([^&]*)/)?.[1];
+        const refreshToken = urlHash.match(/refresh_token=([^&]*)/)?.[1];
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+
+          if (error) {
+            message.textContent = "Failed to restore session.";
+            message.className = "message error";
+          }
+        } else {
+          message.textContent = "Missing session tokens.";
+          message.className = "message error";
+        }
+      }, 200);
+
+      // Button handler
+      window.updatePassword = async function () {
+        const newPassword = newPasswordInput.value;
+
+        if (!newPassword) {
+          message.textContent = "Please enter a new password.";
+          message.className = "message error";
+          return;
+        }
+
+        const { error } = await supabase.auth.updateUser({
+          password: newPassword,
+        });
+
+        if (error) {
+          message.textContent = error.message;
+          message.className = "message error";
+        } else {
+          message.textContent = "✅ Password updated! You can now log in.";
+          message.className = "message success";
+          newPasswordInput.value = "";
+        }
+      };
+    </script>
+  </body>
+</html>
