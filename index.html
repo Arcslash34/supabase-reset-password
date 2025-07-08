@@ -62,6 +62,11 @@
           })
           .then(({ error }) => {
             if (error) message.textContent = "Failed to restore session.";
+            else console.log("Session set successfully");
+          })
+          .catch((err) => {
+            console.error("Set session failed", err);
+            message.textContent = "Session error.";
           });
       } else {
         message.textContent = "Missing session tokens.";
