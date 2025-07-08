@@ -47,32 +47,38 @@
         "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxpdHBybmZqdnl0anR0bHF5aGxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE4ODgwMDUsImV4cCI6MjA2NzQ2NDAwNX0.a63MemNyPUF6fds0kD_7OCtklD4_gTUztKqOseGXnsg"
       );
 
-      const urlHash = window.location.hash;
-      const accessToken = urlHash.match(/access_token=([^&]*)/)?.[1];
-      const refreshToken = urlHash.match(/refresh_token=([^&]*)/)?.[1];
-
       const message = document.getElementById("message");
       const newPasswordInput = document.getElementById("new-password");
 
-      if (accessToken && refreshToken) {
-        supabase.auth
-          .setSession({
+      setTimeout(async () => {
+        const urlHash = window.location.hash;
+        console.log("Hash:", urlHash);
+
+        const accessToken = urlHash.match(/access_token=([^&]*)/)?.[1];
+        const refreshToken = urlHash.match(/refresh_token=([^&]*)/)?.[1];
+
+        console.log("Access Token:", accessToken);
+        console.log("Refresh Token:", refreshToken);
+
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
             access_token: accessToken,
             refresh_token: refreshToken,
-          })
-          .then(({ error }) => {
-            if (error) message.textContent = "Failed to restore session.";
-            else console.log("Session set successfully");
-          })
-          .catch((err) => {
-            console.error("Set session failed", err);
-            message.textContent = "Session error.";
           });
-      } else {
-        message.textContent = "Missing session tokens.";
-      }
 
-      async function updatePassword() {
+          if (error) {
+            console.error("Session error:", error.message);
+            message.textContent = "Failed to restore session.";
+          } else {
+            console.log("Session set successfully");
+          }
+        } else {
+          message.textContent = "Missing session tokens.";
+        }
+      }, 200); // slight delay to ensure hash is available
+
+      // Global function for button click
+      window.updatePassword = async function () {
         const newPassword = newPasswordInput.value;
         if (!newPassword) {
           message.textContent = "Please enter a new password.";
@@ -83,9 +89,14 @@
           password: newPassword,
         });
 
-        if (error) message.textContent = error.message;
-        else message.textContent = "Password updated! You can now log in.";
-      }
+        if (error) {
+          console.error("Update error:", error.message);
+          message.textContent = error.message;
+        } else {
+          message.style.color = "green";
+          message.textContent = "Password updated! You can now log in.";
+        }
+      };
     </script>
   </body>
 </html>
