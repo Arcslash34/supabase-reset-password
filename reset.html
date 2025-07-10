@@ -105,26 +105,21 @@
       const newPasswordInput = document.getElementById("new-password");
 
       // Delay to ensure hash is fully available
-      setTimeout(async () => {
-        const urlHash = window.location.hash;
-        const accessToken = urlHash.match(/access_token=([^&]*)/)?.[1];
-        const refreshToken = urlHash.match(/refresh_token=([^&]*)/)?.[1];
+      (async () => {
+        const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
 
-        if (accessToken && refreshToken) {
-          const { error } = await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          });
-
-          if (error) {
-            message.textContent = "Failed to restore session.";
-            message.className = "message error";
-          }
-        } else {
-          message.textContent = "Missing session tokens.";
+        if (error) {
+          message.textContent = "Failed to restore session: " + error.message;
           message.className = "message error";
+          return;
         }
-      }, 200);
+
+        if (!data?.session) {
+          message.textContent = "Session data is missing. Try using the reset link again.";
+          message.className = "message error";
+          return;
+        }
+      })();
 
       // Button handler
       window.updatePassword = async function () {
