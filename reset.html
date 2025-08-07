@@ -106,7 +106,9 @@
 
       // Delay to ensure hash is fully available
       (async () => {
-        const { data, error } = await supabase.auth.getSessionFromUrl({ storeSession: true });
+        const { data, error } = await supabase.auth.getSessionFromUrl({
+          storeSession: true,
+        });
 
         if (error) {
           message.textContent = "Failed to restore session: " + error.message;
@@ -115,7 +117,8 @@
         }
 
         if (!data?.session) {
-          message.textContent = "Session data is missing. Try using the reset link again.";
+          message.textContent =
+            "Session data is missing. Try using the reset link again.";
           message.className = "message error";
           return;
         }
